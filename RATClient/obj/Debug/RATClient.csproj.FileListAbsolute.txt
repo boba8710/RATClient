@@ -1,0 +1,6 @@
+c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\bin\Debug\RATClient.exe.config
+c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\obj\Debug\RATClient.csprojResolveAssemblyReference.cache
+c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\bin\Debug\RATClient.exe
+c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\bin\Debug\RATClient.pdb
+c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\obj\Debug\RATClient.exe
+c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\obj\Debug\RATClient.pdb
