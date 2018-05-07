@@ -4,3 +4,5 @@ c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\bin\Deb
 c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\bin\Debug\RATClient.pdb
 c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\obj\Debug\RATClient.exe
 c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\obj\Debug\RATClient.pdb
+c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\bin\Debug\DirectShowLib.dll
+c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\bin\Debug\DirectShowLib.pdb
