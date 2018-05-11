@@ -6,3 +6,12 @@ c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\obj\Deb
 c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\obj\Debug\RATClient.pdb
 c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\bin\Debug\DirectShowLib.dll
 c:\users\zaine\documents\visual studio 2015\Projects\RATClient\RATClient\bin\Debug\DirectShowLib.pdb
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\bin\Debug\RATClient.exe.config
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\bin\Debug\RATClient.exe
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\bin\Debug\RATClient.pdb
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\bin\Debug\DirectShowLib.dll
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\bin\Debug\DirectShowLib.pdb
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\obj\Debug\RATClient.csprojResolveAssemblyReference.cache
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\obj\Debug\RATClient.csproj.CoreCompileInputs.cache
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\obj\Debug\RATClient.exe
+C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\obj\Debug\RATClient.pdb
