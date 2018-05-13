@@ -14,3 +14,4 @@ C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\
 C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\obj\Debug\RATClient.csproj.CoreCompileInputs.cache
 C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\obj\Debug\RATClient.exe
 C:\Users\Zaine Wilson\Documents\Visual Studio 2017\Projects\RATClient\RATClient\RATClient\obj\Debug\RATClient.pdb
+C:\Users\Zaine\Documents\Visual Studio 2015\Projects\RATClient\RATClient\obj\Debug\RATClient.csprojResolveAssemblyReference.cache

